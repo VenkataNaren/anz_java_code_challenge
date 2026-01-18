@@ -1,4 +1,5 @@
 
+
 ---
 
 # ANZ Java Coding Challenge – Order Processing & Notification System
@@ -10,12 +11,12 @@ It exposes REST APIs to **create, retrieve, update, and search orders**, and not
 
 The project demonstrates:
 
-- **Core Java concepts**
-- **Spring Boot REST API development**
-- **Spring Data JPA persistence**
-- **Spring Security authentication**
-- **Event-driven notifications**
-- **Automated testing**
+- Core Java concepts  
+- Spring Boot REST API development  
+- Spring Data JPA persistence  
+- Spring Security authentication  
+- Event‑driven notifications  
+- Automated testing  
 
 ---
 
@@ -23,19 +24,19 @@ The project demonstrates:
 
 ### 2.1 Order API Management
 
-- **Create a new order**: `POST /orders`  
-- **Create multiple orders in bulk**: `POST /orders/bulkOrders`  
-- **Retrieve order details**: `GET /orders/{id}`  
-- **Update order status**: `PUT /orders/{id}/status?status=COMPLETED`  
-- **Search orders**: `GET /orders` (supports pagination and optional status filtering)
+- **Create a new order:** `POST /orders`  
+- **Create multiple orders in bulk:** `POST /orders/bulkOrders`  
+- **Retrieve order details:** `GET /orders/{id}`  
+- **Update order status:** `PUT /orders/{id}/status?status=COMPLETED`  
+- **Search orders:** `GET /orders` (supports pagination + optional status filtering)
 
-**Order Status Lifecycle:**
+#### **Order Status Lifecycle**
 
 - `CREATED`  
 - `COMPLETED`  
 - `CANCELLED`
 
-**Search Orders Parameters:**
+#### **Search Orders Parameters**
 
 | Parameter | Description | Default |
 |----------|-------------|---------|
@@ -47,10 +48,15 @@ The project demonstrates:
 
 ### 2.2 Notifications
 
-- Notifications are triggered on **order creation** or **status change**.
-- Supports multiple channels:
-  - **Email** (enabled by default)
-  - **SMS** (configurable)
+Notifications are triggered on:
+
+- **Order creation**
+- **Order status change**
+
+Supported channels:
+
+- **Email** (enabled by default)
+- **SMS** (configurable)
 
 **Configuration (`application.properties` or `notification.properties`):**
 
@@ -60,13 +66,13 @@ notification.sms.enabled=false
 ```
 
 Notifications are simulated using `NotificationService`.  
-The design allows easy extension to real email/SMS providers or mocking with WireMock.
+Easily extendable to real email/SMS providers or WireMock.
 
 ---
 
 ## 3. Persistence
 
-Orders are stored in an **H2 in-memory database** using Spring Data JPA.
+Orders are stored in an **H2 in‑memory database** using Spring Data JPA.
 
 **H2 Console:**  
 http://localhost:8080/h2-console
@@ -92,7 +98,7 @@ Username: admin
 Password: admin123
 ```
 
-Can be extended to OAuth2 or JWT for production.
+Can be extended to OAuth2 or JWT.
 
 ---
 
@@ -106,7 +112,7 @@ Consistent HTTP responses:
 
 Logging currently uses `System.out.println()` (can be replaced with SLF4J/Logback).
 
-Retry logic for notifications can be added using **Spring Retry**.
+Retry logic can be added using **Spring Retry**.
 
 ---
 
@@ -142,6 +148,42 @@ Swagger provides:
 
 ---
 
+## 6.1 Web Client
+
+A simple HTML page is available to interact with the Order API.
+
+**URL:**  
+http://localhost:8080/index.html
+
+### Features
+
+- Create a new order  
+- Search and filter orders by status  
+- Update order status via dropdown  
+
+### Frontend Notes
+
+- Input field uses `id="orderName"` → must map to backend `description` field  
+- Uses `fetch()` to call REST endpoints  
+- Handles pageable API responses from `/orders`
+
+### Sample HTML Snippet
+
+```html
+<input type="text" id="orderName" placeholder="Order Name">
+<button onclick="createOrder()">Create</button>
+
+<select id="statusFilter">
+  <option value="">All</option>
+  <option value="CREATED">CREATED</option>
+  <option value="COMPLETED">COMPLETED</option>
+  <option value="CANCELLED">CANCELLED</option>
+</select>
+<button onclick="searchOrders()">Search</button>
+```
+
+---
+
 ## 7. Sample API Requests (cURL)
 
 ### Create Order
@@ -165,34 +207,6 @@ curl -u admin:admin123 -X POST \
 
 ---
 
-### Create Bulk Orders
-
-```bash
-curl -u admin:admin123 -X POST \
-  -H "Content-Type: application/json" \
-  -d '[{"description":"Order 1"},{"description":"Order 2"}]' \
-  http://localhost:8080/orders/bulkOrders
-```
-
-**Response:**
-
-```json
-[
-  {
-    "id": 1,
-    "description": "Order 1",
-    "status": "CREATED"
-  },
-  {
-    "id": 2,
-    "description": "Order 2",
-    "status": "CREATED"
-  }
-]
-```
-
----
-
 ### Get Order
 
 ```bash
@@ -204,57 +218,14 @@ curl -u admin:admin123 http://localhost:8080/orders/1
 ```json
 {
   "id": 1,
-  "description": "Order 1",
+  "description": "Test Order",
   "status": "CREATED"
 }
 ```
 
-**Order Not Found (404):**
-
-```json
-{
-  "timestamp": "2026-01-19T09:36:55.389",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Order not found with id: 56",
-  "path": "/orders/56"
-}
-```
-
 ---
 
-### Update Order Status
-
-```bash
-curl -u admin:admin123 -X PUT \
-  http://localhost:8080/orders/1/status?status=COMPLETED
-```
-
-**Response:**
-
-```json
-{
-  "id": 1,
-  "description": "Order 1",
-  "status": "COMPLETED"
-}
-```
-
-**Invalid Status (400):**
-
-```json
-{
-  "timestamp": "2026-01-19T09:50:21.206",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Cannot deserialize value of type `Order$Status` from String \"INVALID\"",
-  "path": "/orders/1/status"
-}
-```
-
----
-
-### Search Orders (Pagination + Filtering)
+### Search Orders
 
 ```bash
 curl -u admin:admin123 "http://localhost:8080/orders?page=0&size=10&status=CREATED"
@@ -267,12 +238,7 @@ curl -u admin:admin123 "http://localhost:8080/orders?page=0&size=10&status=CREAT
   "content": [
     {
       "id": 1,
-      "description": "Order 1",
-      "status": "CREATED"
-    },
-    {
-      "id": 3,
-      "description": "Order 3",
+      "description": "Test Order",
       "status": "CREATED"
     }
   ],
@@ -280,7 +246,7 @@ curl -u admin:admin123 "http://localhost:8080/orders?page=0&size=10&status=CREAT
     "pageNumber": 0,
     "pageSize": 10
   },
-  "totalElements": 2,
+  "totalElements": 1,
   "totalPages": 1,
   "last": true,
   "first": true
@@ -325,37 +291,37 @@ Run tests:
 
 ## 10. Key Technical Decisions
 
-- **Lombok** to reduce boilerplate  
-- **H2 Database** for fast, in-memory persistence  
-- **Notification Service** designed for multi-channel extensibility  
-- **Spring Security Basic Auth** for simplicity  
-- **Spring Retry & AOP** for retry logic  
-- **RESTful API design** with proper HTTP semantics  
-- **Swagger/OpenAPI** for documentation  
+- Lombok to reduce boilerplate  
+- H2 Database for fast, in‑memory persistence  
+- Notification Service designed for multi‑channel extensibility  
+- Spring Security Basic Auth for simplicity  
+- Spring Retry & AOP for retry logic  
+- RESTful API design with proper HTTP semantics  
+- Swagger/OpenAPI for documentation  
+- Web client implemented as static HTML page  
 
 ---
 
 ## 11. How to Run
 
-### Clone the repository:
+### Clone the repository
 
 ```bash
 git clone https://github.com/VenkataNaren/anz_java_code_challenge.git
 cd anz_java_code_challenge
 ```
 
-### Run the project:
+### Run the project
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-### Access APIs using Basic Auth:
+### Access APIs and UI
 
-```
-Username: admin
-Password: admin123
-```
+- **Swagger UI:** http://localhost:8080/swagger-ui/index.html  
+- **Web Client:** http://localhost:8080/index.html  
+- **H2 Console:** http://localhost:8080/h2-console  
 
 ---
 
