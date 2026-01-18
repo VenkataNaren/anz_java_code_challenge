@@ -3,6 +3,8 @@ package com.anz.challenge.controller;
 import com.anz.challenge.model.Order;
 import com.anz.challenge.service.OrderService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +15,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderService service;
+    @Autowired
+	OrderService service;
 
     @PostMapping
     public ResponseEntity<Order> createOrder(@RequestBody Order order) {

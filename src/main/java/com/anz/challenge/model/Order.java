@@ -1,16 +1,9 @@
 package com.anz.challenge.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "orders")
 public class Order {
 
     @Id
@@ -22,9 +15,42 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private Status status = Status.CREATED;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    public Order() {}
+
+    public Order(Long id, String description, Status status) {
+        this.id = id;
+        this.description = description;
+        this.status = status;
+    }
+
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 
     public enum Status {
-        CREATED, CANCELLED, COMPLETED
+        CREATED,
+        COMPLETED,
+        CANCELLED
     }
 }

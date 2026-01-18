@@ -2,13 +2,16 @@ package com.anz.challenge.service;
 
 import com.anz.challenge.config.NotificationConfig;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final NotificationConfig config;
+	@Autowired
+    private NotificationConfig config;
 
     public void notifyStatusChange(Long orderId, String status) {
         if(config.isEmailEnabled()) {
