@@ -7,9 +7,12 @@ import com.anz.challenge.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @WebMvcTest(OrderController.class)
-@Import(com.anz.challenge.config.TestSecurityConfig.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class OrderControllerTest {
 
     @Autowired
@@ -86,14 +89,26 @@ public class OrderControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = {"USER"})
     public void testSearchOrders() throws Exception {
+        // Sample orders
         Order order1 = new Order(1L, "Order 1", Order.Status.CREATED);
         Order order2 = new Order(2L, "Order 2", Order.Status.COMPLETED);
 
-        when(orderService.searchOrders()).thenReturn(Arrays.asList(order1, order2));
+        // Wrap in a Page
+        Page<Order> page = new PageImpl<>(Arrays.asList(order1, order2), PageRequest.of(0, 10), 2);
+
+        // Mock the service call
+        when(orderService.searchOrders(null, PageRequest.of(0, 10))).thenReturn(page);
 
         mockMvc.perform(get("/orders"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[1].id").value(2));
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].description").value("Order 1"))
+                .andExpect(jsonPath("$.content[0].status").value("CREATED"))
+                .andExpect(jsonPath("$.content[1].id").value(2))
+                .andExpect(jsonPath("$.content[1].description").value("Order 2"))
+                .andExpect(jsonPath("$.content[1].status").value("COMPLETED"))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.number").value(0))  // page number
+                .andExpect(jsonPath("$.size").value(10));   // page size
     }
 }

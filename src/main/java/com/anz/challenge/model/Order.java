@@ -1,5 +1,8 @@
 package com.anz.challenge.model;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -44,8 +47,13 @@ public class Order {
         return status;
     }
 
+    @JsonSetter(nulls = Nulls.SKIP)
     public void setStatus(Status status) {
-        this.status = status;
+        if (status == null) {
+            this.status = Status.CREATED;
+        } else {
+            this.status = status;
+        }
     }
 
     public enum Status {
