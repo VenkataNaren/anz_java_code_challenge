@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,7 +38,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<Order> createOrder(
             @Parameter(description = "Order object to be created", required = true)
-            @RequestBody Order order) {
+            @Valid @RequestBody Order order) {
         return ResponseEntity.ok(service.createOrder(order));
     }
 
@@ -51,7 +52,7 @@ public class OrderController {
     @PostMapping("/bulkOrders")
     public ResponseEntity<List<Order>> createOrders(
             @Parameter(description = "List of orders to be created", required = true)
-            @RequestBody List<Order> orders) {
+            @Valid @RequestBody List<Order> orders) {
         return ResponseEntity.ok(service.createBulkOrders(orders));
     }
 

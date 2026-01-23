@@ -103,6 +103,7 @@
                 <th>Description</th>
                 <th>Status</th>
                 <th>Update Status</th>
+				<th>Created At</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -170,6 +171,7 @@
                             <option value="CANCELLED" ${order.status==='CANCELLED'?'selected':''}>CANCELLED</option>
                         </select>
                     </td>
+					<td>${order.createdAt}</td>
                 `;
                 tableBody.appendChild(row);
             });

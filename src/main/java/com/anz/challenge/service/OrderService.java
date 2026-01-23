@@ -4,18 +4,21 @@ import com.anz.challenge.model.Order;
 import com.anz.challenge.repository.OrderRepository;
 import com.anz.challenge.exception.OrderNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
+	
+	private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
     private OrderRepository repository;
@@ -33,14 +36,24 @@ public class OrderService {
 
     @Transactional
     public List<Order> createBulkOrders(List<Order> orders) {
+        // Ensure status is set
         for (Order o : orders) {
-            if(o.getStatus() == null) o.setStatus(Order.Status.CREATED);
+            if (o.getStatus() == null) o.setStatus(Order.Status.CREATED);
         }
+
+        // Save all orders in a single transaction
         List<Order> savedOrders = repository.saveAll(orders);
 
-        // send notifications for each order
-        for(Order o : savedOrders) {
-            notificationService.notifyStatusChange(o.getId(), o.getStatus().name());
+        // Send notifications outside the transactional rollback effect
+        for (Order o : savedOrders) {
+            try {
+                // Notify status change (Spring Retry + idempotency inside service)
+                notificationService.notifyStatusChange(o.getId(), o.getStatus().name());
+            } catch (Exception e) {
+                // Log failure but do not affect order transaction
+                log.error("Notification failed for order {} with status {}: {}", 
+                          o.getId(), o.getStatus().name(), e.getMessage());
+            }
         }
 
         return savedOrders;
@@ -54,6 +67,8 @@ public class OrderService {
     public Order updateStatus(Long id, Order.Status status) {
         Order order = repository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
+        // Validate allowed transitions
+        validateStatusChange(order, status);
         order.setStatus(status);
         Order updated = repository.save(order);
         notificationService.notifyStatusChange(updated.getId(), updated.getStatus().name());
@@ -66,6 +81,15 @@ public class OrderService {
             return repository.findByStatus(status, pageable);
         } else {
             return repository.findAll(pageable);
+        }
+    }
+    
+    private void validateStatusChange(Order order, Order.Status newStatus) {
+        if (order.getStatus() == Order.Status.COMPLETED ||
+            order.getStatus() == Order.Status.CANCELLED) {
+            throw new IllegalArgumentException(
+                "Cannot change status from " + order.getStatus()
+            );
         }
     }
 }
