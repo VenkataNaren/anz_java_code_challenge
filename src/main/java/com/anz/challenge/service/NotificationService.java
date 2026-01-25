@@ -77,10 +77,19 @@ public class NotificationService {
         simulateFailure(orderId, "SMS");
     }
 
-    // Simulate a random failure (for demonstration/testing)
     private void simulateFailure(Long orderId, String type) {
-        if (Math.random() < 0.2) { // 20% chance to fail
-            throw new RuntimeException(type + " service simulated failure for order " + orderId);
+        double randomValue = Math.random();
+        boolean shouldFail = randomValue < 0.2;
+
+        log.info(
+            "simulateFailure - orderId={}, type={}, randomValue={}, threshold=0.2, shouldFail={}",
+            orderId, type, randomValue, shouldFail
+        );
+
+        if (shouldFail) {
+            throw new RuntimeException(
+                type + " service simulated failure for order " + orderId
+            );
         }
     }
 }
