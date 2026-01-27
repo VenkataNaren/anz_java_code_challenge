@@ -2,6 +2,7 @@ package com.anz.challenge.service;
 
 import com.anz.challenge.model.Order;
 import com.anz.challenge.repository.OrderRepository;
+import com.anz.challenge.dto.OrderSummary;
 import com.anz.challenge.exception.OrderNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -91,5 +93,21 @@ public class OrderService {
                 "Cannot change status from " + order.getStatus()
             );
         }
+    }
+    
+    public List<OrderSummary> getOrdersByStatusStream(Order.Status status) {
+        return repository.findAll() // fetch all orders
+                .stream()                     // create a stream
+                .filter(order -> order.getStatus() == status) // filter by status
+                .map(order -> {
+                    OrderSummary summary = new OrderSummary(
+                            order.getId(),
+                            order.getDescription(),
+                            order.getStatus().name()
+                    );
+                    summary.logDetails(); // log here
+                    return summary;       // return for collect
+                })
+                .collect(Collectors.toList()); // collect as list
     }
 }

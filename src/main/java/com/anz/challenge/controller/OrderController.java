@@ -2,6 +2,7 @@ package com.anz.challenge.controller;
 
 import com.anz.challenge.model.Order;
 import com.anz.challenge.service.OrderService;
+import com.anz.challenge.dto.OrderSummary;
 import com.anz.challenge.exception.OrderNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -108,5 +109,11 @@ public class OrderController {
         PageRequest pageable = PageRequest.of(page, size);
         Page<Order> ordersPage = service.searchOrders(status, pageable);
         return ResponseEntity.ok(ordersPage);
+    }
+    
+    @GetMapping("/stream/status/{status}")
+    public ResponseEntity<List<OrderSummary>> getOrdersByStatusStream(@PathVariable("status") Order.Status status) {
+        List<OrderSummary> result = service.getOrdersByStatusStream(status);
+        return ResponseEntity.ok(result);
     }
 }
