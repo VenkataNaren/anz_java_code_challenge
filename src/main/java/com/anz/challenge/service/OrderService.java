@@ -37,7 +37,6 @@ public class OrderService {
 		return saved;
 	}
 
-	@Transactional
 	public List<Order> createBulkOrders(List<Order> orders) {
 		List<Order> saved = saveOrdersTransactional(orders);
 		sendNotificationsAsync(saved);
