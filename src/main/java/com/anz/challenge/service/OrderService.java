@@ -1,9 +1,10 @@
 package com.anz.challenge.service;
 
-import com.anz.challenge.model.Order;
-import com.anz.challenge.repository.OrderRepository;
+import com.anz.challenge.dto.NotificationEvent;
 import com.anz.challenge.dto.OrderSummary;
 import com.anz.challenge.exception.OrderNotFoundException;
+import com.anz.challenge.model.Order;
+import com.anz.challenge.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +54,16 @@ public class OrderService {
 	}
 
 	public void sendNotificationsAsync(List<Order> orders) {
+		if (orders == null || orders.isEmpty()) {
+			log.info("No orders provided for notification publishing.");
+			return;
+		}
+		log.info("Publishing notification events for {} order(s).", orders.size());
 		for (Order o : orders) {
 			try {
+				log.info("Publishing notification event: orderId={}, status={}", o.getId(), o.getStatus().name());
 				notificationService.notifyStatusChange(o.getId(), o.getStatus().name());
+				log.info("Published notification event: orderId={}, status={}, description={}", o.getId(), o.getStatus().name(), o.getDescription());
 			} catch (Exception e) {
 				log.error("Notification failed for order {}: {}", o.getId(), e.getMessage());
 			}
